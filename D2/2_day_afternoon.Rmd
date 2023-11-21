@@ -1,0 +1,72 @@
+---
+title: "1_day_afternoon"
+output: html_document
+date: "2023-11-14"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r imports}
+library(tidyverse)
+library(haven)
+library(foreign)
+library(multcomp)
+library(car)
+library(boot) # logit and inv.logit
+library(rms)
+library(splines)
+library(ggplot2)
+```
+```{r datasets}
+lung<-read_dta("ds/lung.dta")
+glyco<-read_dta("ds/glyco.dta")
+```
+
+# 1
+```{r 1}
+ggplot(glyco, aes(x = ph, y = glyco)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = TRUE, color = "blue") +
+
+  labs(title = "Glyko", x = "X-axis", y = "Y-axis")
+```
+```{r 2}
+glyco_lm = lm(glyco ~ ph, data = glyco)
+summary(glyco_lm)
+confint(glyco_lm)
+```
+```{r 3}
+glyco$glyco_pred <- predict(glyco_lm)
+glyco$glyco_res <-  glyco$glyco - glyco$glyco_pred
+glyco
+```
+
+
+```{r 4}
+ggplot(glyco, aes(x = glyco, y = glyco_res)) +
+  geom_point() +
+  labs(title = "pH residuals", x = "X-axis", y = "Y-axis") + 
+  geom_hline(yintercept = 0)
+```
+
+```{r}
+newdata = data.frame(ph=c(7.4))
+predict(glyco_lm, newdata = newdata)
+glyco_lm
+```
+# 7
+Null values i høje pH værdier skewer (leverager) modellen. Negative koncentrationer ved høje pdværdier.
+
+# 8
+```{r}
+gfr<-read_dta("ds/gfrdata.dta")
+summary(gfr)
+```
+```{r}
+gfr$gfr_ln <- log(gfr$gfr_ln)
+gfr$cr_ln <- log(gfr$cr_ln)
+
+```
+
